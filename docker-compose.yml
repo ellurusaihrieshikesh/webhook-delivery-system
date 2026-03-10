@@ -19,6 +19,7 @@ services:
       - "6379:6379"
 
   api:
+    image: saihrieshikesh/webhook-api:latest
     build: ./api
     ports:
       - "3000:3000"
@@ -31,6 +32,7 @@ services:
       - redis
 
   worker:
+    image: saihrieshikesh/webhook-worker:latest
     build: ./worker
     environment:
       - DATABASE_URL=postgres://webhook_user:webhook_password@postgres:5432/webhooks_db
@@ -40,6 +42,7 @@ services:
       - redis
 
   receiver:
+    image: saihrieshikesh/webhook-receiver:latest
     build: ./receiver
     ports:
       - "4000:4000"
