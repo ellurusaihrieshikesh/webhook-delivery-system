@@ -1,17 +1,19 @@
-version: '3.8'
-
 services:
-  postgres:
+  db:
     image: postgres:15-alpine
     environment:
-      POSTGRES_USER: webhook_user
-      POSTGRES_PASSWORD: webhook_password
-      POSTGRES_DB: webhooks_db
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: webhooks
+    volumes:
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
     ports:
       - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d webhooks"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   redis:
     image: redis:7-alpine
@@ -19,35 +21,46 @@ services:
       - "6379:6379"
 
   api:
-    image: saihrieshikesh/webhook-api:latest
-    build: ./api
+    build:
+      context: ./api
     ports:
       - "3000:3000"
     environment:
-      - DATABASE_URL=postgres://webhook_user:webhook_password@postgres:5432/webhooks_db
-      - REDIS_URL=redis://redis:6379
-      - PORT=3000
+      NODE_ENV: production
+      DATABASE_URL: postgres://user:password@db:5432/webhooks
+      REDIS_URL: redis://redis:6379
     depends_on:
-      - postgres
-      - redis
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    volumes:
+      - ./api:/app
+      - /app/node_modules
 
   worker:
-    image: saihrieshikesh/webhook-worker:latest
-    build: ./worker
+    build:
+      context: ./worker
     environment:
-      - DATABASE_URL=postgres://webhook_user:webhook_password@postgres:5432/webhooks_db
-      - REDIS_URL=redis://redis:6379
+      NODE_ENV: production
+      DATABASE_URL: postgres://user:password@db:5432/webhooks
+      REDIS_URL: redis://redis:6379
     depends_on:
-      - postgres
-      - redis
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    volumes:
+      - ./worker:/app
+      - /app/node_modules
 
-  receiver:
-    image: saihrieshikesh/webhook-receiver:latest
-    build: ./receiver
+  mock-receiver:
+    build:
+      context: ./mock-receiver
     ports:
-      - "4000:4000"
+      - "3001:3000"
+    volumes:
+      - ./mock-receiver:/app
+      - /app/node_modules
     environment:
-      - PORT=4000
-
-volumes:
-  postgres_data:
+      PORT: 3000

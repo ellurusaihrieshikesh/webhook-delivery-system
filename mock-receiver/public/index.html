@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Webhook System Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            gray: {
+              900: '#111827',
+              800: '#1f2937',
+              700: '#374151',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Custom sleek scrollbar for webkit */
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: #111827; }
+    ::-webkit-scrollbar-thumb { background: #374151; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #4b5563; }
+    
+    .glass-panel {
+      background: rgba(31, 41, 55, 0.7);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+  </style>
+</head>
+<body class="bg-gray-900 text-gray-100 min-h-screen font-sans selection:bg-indigo-500 selection:text-white">
+  
+  <nav class="border-b border-gray-800 bg-gray-900/50 backdrop-blur-md sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center font-bold shadow-lg">W</div>
+          <span class="font-semibold text-xl tracking-tight">Webhook Platform</span>
+        </div>
+        <div class="text-sm text-gray-400">
+          <span class="inline-block w-2 h-2 rounded-full bg-green-500 mr-2 animate-pulse"></span>
+          System Online
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <!-- Left Column: Controls -->
+      <div class="space-y-8">
+        
+        <!-- Registration Card -->
+        <div class="glass-panel rounded-2xl p-6 shadow-xl transition-all duration-300 hover:shadow-indigo-500/10 hover:border-indigo-500/30">
+          <h2 class="text-xl font-semibold mb-1">1. Register User Webhook</h2>
+          <p class="text-xs text-gray-400 mb-5">Create a user and subscribe to events on the mock receiver.</p>
+          
+          <form id="registerForm" class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-300 mb-1">User ID</label>
+              <input type="text" id="regUserId" required placeholder="e.g., user-123" 
+                class="w-full bg-gray-950 border border-gray-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-colors">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-300 mb-1">Target URL</label>
+              <input type="url" id="regUrl" required value="http://mock-receiver:3000/events" 
+                class="w-full bg-gray-950 border border-gray-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-colors text-gray-400" readonly>
+              <p class="text-[10px] text-gray-500 mt-1">Preset to internal docker mock-receiver route</p>
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-300 mb-2">Subscribe to Events</label>
+              <div class="flex gap-4">
+                <label class="flex items-center gap-2 cursor-pointer group">
+                  <input type="checkbox" name="events" value="request.created" checked class="w-4 h-4 rounded border-gray-700 bg-gray-900 text-indigo-500 focus:ring-indigo-500 focus:ring-offset-gray-900">
+                  <span class="text-sm text-gray-300 group-hover:text-white transition-colors">request.created</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer group">
+                  <input type="checkbox" name="events" value="request.updated" checked class="w-4 h-4 rounded border-gray-700 bg-gray-900 text-indigo-500 focus:ring-indigo-500 focus:ring-offset-gray-900">
+                  <span class="text-sm text-gray-300 group-hover:text-white transition-colors">request.updated</span>
+                </label>
+              </div>
+            </div>
+
+            <button type="submit" 
+              class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-2.5 px-4 rounded-lg transition-colors shadow-lg shadow-indigo-500/20 active:scale-[0.98]">
+              Register Webhook ->
+            </button>
+          </form>
+        </div>
+
+        <!-- Fire Event Card -->
+        <div class="glass-panel rounded-2xl p-6 shadow-xl transition-all duration-300 hover:shadow-purple-500/10 hover:border-purple-500/30">
+          <h2 class="text-xl font-semibold mb-1">2. Fire Mock Event</h2>
+          <p class="text-xs text-gray-400 mb-5">Trigger an internal event and see the system fan it out.</p>
+
+          <form id="fireForm" class="space-y-4">
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-300 mb-1">Target User ID</label>
+                <input type="text" id="fireUserId" required placeholder="e.g., user-123" 
+                  class="w-full bg-gray-950 border border-gray-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-colors">
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-300 mb-1">Event Type</label>
+                <select id="fireEventType" class="w-full bg-gray-950 border border-gray-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-colors text-white">
+                  <option value="request.created">request.created</option>
+                  <option value="request.updated">request.updated</option>
+                  <option value="request.deleted">request.deleted</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-300 mb-1">Payload Body (JSON)</label>
+              <textarea id="firePayload" rows="3" class="w-full bg-gray-950 border border-gray-700 rounded-lg px-4 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-colors text-gray-300">
+{
+  "id": 999,
+  "message": "Hello from GUI!"
+}</textarea>
+            </div>
+
+            <button type="submit" 
+              class="w-full bg-purple-600 hover:bg-purple-500 text-white font-medium py-2.5 px-4 rounded-lg transition-colors shadow-lg shadow-purple-500/20 active:scale-[0.98]">
+              Publish Event ->
+            </button>
+          </form>
+        </div>
+
+      </div>
+
+      <!-- Right Column: Receiver Display -->
+      <div class="h-full flex flex-col">
+        <div class="glass-panel rounded-2xl p-6 shadow-xl flex-1 flex flex-col relative h-[600px] lg:h-auto">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h2 class="text-xl font-semibold">Live Deliveries</h2>
+              <p class="text-xs text-gray-400">Auto-refreshing view of mock-receiver logs.</p>
+            </div>
+            <div class="flex items-center gap-2 text-xs font-mono bg-gray-900 rounded-full px-3 py-1 border border-gray-700 text-indigo-400">
+              <span class="relative flex h-2 w-2">
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
+              </span>
+              Polling Receiver
+            </div>
+          </div>
+
+          <div id="eventsContainer" class="flex-1 overflow-y-auto space-y-3 pr-2">
+            <!-- Events will be appended here via JS -->
+            <div class="text-center text-gray-500 mt-20 text-sm">
+              Waiting for webhooks...
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Notifications Template -->
+  <div id="toastContainer" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2"></div>
+
+  <script>
+    const API_URL = 'http://localhost:3000';
+    let lastEventCount = 0;
+
+    // Toast Notification helper
+    function showToast(message, type = 'success') {
+      const toast = document.createElement('div');
+      const bgColor = type === 'success' ? 'bg-green-500' : (type === 'error' ? 'bg-red-500' : 'bg-indigo-500');
+      toast.className = `px-4 py-3 rounded shadow-lg text-white font-medium text-sm transform transition-all translate-y-8 opacity-0 flex items-center gap-2 ${bgColor}`;
+      toast.innerHTML = type === 'success' ? `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>${message}` : message;
+      
+      document.getElementById('toastContainer').appendChild(toast);
+      
+      // Animate in
+      requestAnimationFrame(() => {
+        toast.classList.remove('translate-y-8', 'opacity-0');
+      });
+      
+      // Remove after 3s
+      setTimeout(() => {
+        toast.classList.add('opacity-0');
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
+
+    // 1. Register Form Handler
+    document.getElementById('registerForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const userId = document.getElementById('regUserId').value;
+      const url = document.getElementById('regUrl').value;
+      
+      const eventCheckboxes = document.querySelectorAll('input[name="events"]:checked');
+      const events = Array.from(eventCheckboxes).map(cb => cb.value);
+
+      if (events.length === 0) {
+        showToast('Please select at least one event type.', 'error');
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_URL}/webhooks`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-User-Id': userId
+          },
+          body: JSON.stringify({ target_url: url, events })
+        });
+
+        if (res.ok) {
+          showToast(`Webhook registered for ${userId}!`);
+          document.getElementById('fireUserId').value = userId; // Auto-fill for convenience
+        } else {
+          const err = await res.json();
+          showToast(err.error || 'Failed to register', 'error');
+        }
+      } catch (err) {
+        showToast('Network error, API may be down', 'error');
+      }
+    });
+
+    // 2. Fire Event Form Handler
+    document.getElementById('fireForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const userId = document.getElementById('fireUserId').value;
+      const eventType = document.getElementById('fireEventType').value;
+      let payload;
+      
+      try {
+        payload = JSON.parse(document.getElementById('firePayload').value);
+      } catch (err) {
+        showToast('Invalid JSON Payload', 'error');
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_URL}/internal/events`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_id: userId, event_type: eventType, payload })
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          showToast(data.webhook_count > 0 
+            ? `Event published (Matched ${data.webhook_count} webhooks)` 
+            : `Event published (No webhooks matched)`, 
+            data.webhook_count > 0 ? 'success' : 'info');
+        } else {
+          showToast('Failed to fire event', 'error');
+        }
+      } catch (err) {
+        showToast('Network error, API may be down', 'error');
+      }
+    });
+
+    // 3. Poll Receiver Server for Events
+    async function pollEvents() {
+      try {
+        // Fetch from self (since served from port 3001)
+        const res = await fetch('/api/events');
+        if (!res.ok) return;
+        const events = await res.json();
+
+        if (events.length !== lastEventCount) {
+          lastEventCount = events.length;
+          renderEvents(events);
+        }
+      } catch (err) {
+        // Silent fail on polling errors if server restarts
+      }
+    }
+
+    function renderEvents(events) {
+      const container = document.getElementById('eventsContainer');
+      
+      if (events.length === 0) {
+        container.innerHTML = `<div class="text-center text-gray-500 mt-20 text-sm">No events received yet.</div>`;
+        return;
+      }
+      
+      container.innerHTML = events.map(evt => {
+        const dateStr = new Date(evt.timestamp).toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit', fractionalSecondDigits: 3 });
+        
+        return `
+          <div class="bg-gray-950 border border-gray-800 rounded-lg p-4 slide-in">
+            <div class="flex items-center justify-between mb-2 pb-2 border-b border-gray-800">
+              <div class="flex items-center gap-2">
+                <span class="bg-indigo-500/20 text-indigo-400 text-xs px-2 py-0.5 rounded font-mono">POST</span>
+                <span class="text-gray-300 text-sm font-semibold truncate max-w-[200px]">${evt.body.event_type || 'Unknown Event'}</span>
+              </div>
+              <span class="text-xs font-mono text-gray-500">${dateStr}</span>
+            </div>
+            <pre class="text-xs text-gray-400 font-mono overflow-x-auto p-2 bg-gray-900 rounded border border-gray-800">${JSON.stringify(evt.body, null, 2)}</pre>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Start polling every 1 second
+    setInterval(pollEvents, 1000);
+    pollEvents(); // initial load
+    
+  </script>
+</body>
+</html>
